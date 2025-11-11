@@ -5,7 +5,7 @@
 </head>
 <body>
     <h1>Update Employee with ID {{ emp.Id }}</h1>
-    <form action="/update/{{ emp.Id }}" method="post">
+    <form action="/update/{{ emp.Id }}" method="post" enctype="multipart/form-data">
         <label>Username:</label>
         <input type="text" name="username" value="{{ emp.Username }}" required><br><br>
         <label>Email:</label>
