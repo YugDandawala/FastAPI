@@ -232,7 +232,6 @@ async def update_employee(emp_id: int, username: str = Form(...), email: str = F
    with open(file_path,"wb") as buffer:
       shutil.copyfileobj(image.file, buffer)
 
-   image_read=await image.read()
    query = Emp.update().where(Emp.c.Id == emp_id).values(Username=username, Email=email, P_no=pno,Image=file_path)
    await database.execute(query)
    return RedirectResponse(url="/",status_code=302)
