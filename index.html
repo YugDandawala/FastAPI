@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html>
 <head>
     <title>Employee CRUD</title>
@@ -25,7 +25,7 @@
             <td>{{ emp.Username }}</td>
             <td>{{ emp.Email }}</td>
             <td>{{ emp.P_no }}</td>
-            <td><img src="{{ url_for('static', path='{/emp.Image}') }}" style="width: 200px; height: 150px;"></td>
+            <td><img src="{{ emp.Image }}" style="width: 200px; height: 150px;"></td>
             <td>
                 <a href="/edit/{{emp.Id}}">Update</a> |
                 <a href="/delete/{{ emp.Id }}" onclick="return confirm('Delete this employee?')">Delete</a>
