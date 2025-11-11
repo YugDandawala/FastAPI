@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee CRUD</title>
+</head>
+<body>
+    <h1>Employee Form</h1>
+    <form action="/add/" method="post" enctype="multipart/form-data">
+        <input type="number" name="id" placeholder="ID" required>
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="text" name="pno" placeholder="Phone" required>
+        <input type="file" name="image" required>
+        <button type="submit">Add Employee</button>
+    </form>
+
+    <h2>Employee List</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>Username</th><th>Email</th><th>Phone</th><th>Actions</th>
+        </tr>
+        {% for emp in employees %}
+        <tr>
+            <td>{{ emp.Id }}</td>
+            <td>{{ emp.Username }}</td>
+            <td>{{ emp.Email }}</td>
+            <td>{{ emp.P_no }}</td>
+            <td><img src="{{ url_for('static', path='{/emp.Image}') }}" style="width: 200px; height: 150px;"></td>
+            <td>
+                <a href="/edit/{{emp.Id}}">Update</a> |
+                <a href="/delete/{{ emp.Id }}" onclick="return confirm('Delete this employee?')">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

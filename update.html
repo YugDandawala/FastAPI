@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Employee</title>
+</head>
+<body>
+    <h1>Update Employee with ID {{ emp.Id }}</h1>
+    <form action="/update/{{ emp.Id }}" method="post">
+        <label>Username:</label>
+        <input type="text" name="username" value="{{ emp.Username }}" required><br><br>
+        <label>Email:</label>
+        <input type="email" name="email" value="{{ emp.Email }}" required><br><br>
+        <label>Phone:</label>
+        <input type="text" name="pno" value="{{ emp.P_no }}" required><br><br>
+        <label>Image :</label>
+        <input type="file" name="file" required><br><br>
+        <button type="submit">Update</button>
+        <a href="/">Cancel</a>
+    </form>
+</body>
+</html>
