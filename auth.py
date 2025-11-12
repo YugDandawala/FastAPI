@@ -132,3 +132,6 @@ async def read_own_items(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     return [{"item_id": "Foo", "owner": current_user.username}]
+
+//Youtube video link
+https://youtu.be/5GxQ1rLTwaU?si=j4BbBJYkSAJv27tF
