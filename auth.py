@@ -126,3 +126,18 @@ async def read_own_items(current_user: DBUser = Depends(get_current_active_user)
 
 
 # Authentication by jwt bearer token and tested in postman is working properly 
+
+Step 1:
+- In Postman after creating collection.
+- create a post request add [ {url}/token ] then go to body select { x-www-form-urlencoded } add key and value [ { key=username,value=Ex(yug) } ,{ key=password,value=Ex(yug1234) } ]
+  and send the request it will give a access token like this {"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhYmMiLCJleHAiOjE3NjMwOTU4NTF9.nwyV9oGpvGiFJPuRrI7Uy0j6hrHWbiXJ-Nrn0Y9R3iI"}
+
+Step 2:
+- create a get request [ {url}/users/me ] then go to authorization select Bearer Token and add the access token there ,send the request it will provide you the data of user
+
+Step 3:
+- create a get request [ {url}/users/me/items ] then go to authorization select Bearer Token and add the access token there ,send the request it will provide you the data of user
+
+Step 4:
+- create a get request [ {url}/users/{user_id} ] then go to authorization select Bearer Token and add the access token there ,send the request it will provide you the data of user with given ID
+
