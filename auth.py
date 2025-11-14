@@ -125,6 +125,9 @@ async def read_own_items(current_user: DBUser = Depends(get_current_active_user)
     return [{"item_id": 1, "owner": current_user.username}]
 
 
+-- Build an AI endpoint wiht FastAPI and gemini as our llm model
+# https://youtu.be/uDUfZyNXFX0?si=_igLCYg2C9dLI8KE
+
 # Authentication by jwt bearer token and tested in postman is working properly 
 
 Step 1:
