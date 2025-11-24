@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Login</title>
+  
+</head>
+<body>
+  <div class="card">
+    <h2>Login</h2>
+    <form action="/token" method="post">
+      <label>Username</label>
+      <input name="username" required />
+      <label>Password</label>
+      <input type="password" name="password" required />
+      <button type="submit">Login</button>
+    </form>
+
+    <p style="margin-top:10px;">
+      <strong>Note:</strong> /token returns JSON with the access token. Copy the token and use it as:
+    </p>
+    <code>Authorization: Bearer &lt;token&gt;</code>
+    <p><a href="/">Back to Register</a></p>
+  </div>
+</body>
+</html>
