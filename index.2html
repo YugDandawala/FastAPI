@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Register</title>
+  
+</head>
+<body>
+  <div class="card">
+    <h2>Create account</h2>
+    <form action="/register" method="post">
+      <label>Username</label>
+      <input name="username" required />
+      <label>Password</label>
+      <input type="password" name="password" required />
+      <label>Parent ID (optional)</label>
+      <input type="number" name="parent_id" />
+      <button type="submit">Register</button>
+    </form>
+    <p style="margin-top:12px;"><a href="/login">Already have an account? Login</a></p>
+  </div>
+</body>
+</html>
