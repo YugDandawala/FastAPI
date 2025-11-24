@@ -117,27 +117,27 @@ async def get_current_user(
 
 
 # -------------------- SCORE CALCULATION --------------------
-def calculate_descendant_score(user: User, db: Session):
+def calculate_score(userid, db: Session):
+    level = 0
+    current = userid
 
-    def dfs(u: User, level: int):
-        score = 0
-        children = db.query(User).filter(User.parentid == u.userid).all()
+    while True:
+        user = db.query(User).filter(User.userid == current).first()
+        if not user or user.parentid is None:
+            break
+        level += 1
+        current = user.parentid
 
-        for child in children:
-            if level == 1:
-                score += 20
-            elif level == 2:
-                score += 10
-            elif level == 3:
-                score += 5
-            else:
-                score += 2
-
-            score += dfs(child, level + 1)
-
-        return score
-
-    return dfs(user, 1)
+    if level == 0:
+        return 0
+    elif level == 1:
+        return 20
+    elif level == 2:
+        return 10
+    elif level == 3:
+        return 5
+    else:
+        return 2
 
 
 # -------------------- SCORE PAGE --------------------
