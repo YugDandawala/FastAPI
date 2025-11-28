@@ -8,9 +8,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from typing import Optional, List
-from database import SessionLocal, User as DBUser  # database.py provided above
+from database import SessionLocal, User as DBUser  
 
-# ----------------- JWT / Auth config -----------------
 SECRET_KEY = "83daa0256a2289b0fb23693bf1f6034d44396675749244721a2b20e896e11662"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
@@ -21,16 +20,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-
-# ----------------- Pydantic models (for responses) -----------------
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-
 class TokenData(BaseModel):
     username: Optional[str] = None
-
 
 class UserOut(BaseModel):
     username: str
@@ -39,8 +34,6 @@ class UserOut(BaseModel):
     class Config:
         orm_mode = True
 
-
-# ----------------- DB dependency -----------------
 def get_db():
     db = SessionLocal()
     try:
@@ -48,20 +41,14 @@ def get_db():
     finally:
         db.close()
 
-
-# ----------------- password helpers -----------------
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
-
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
-
-# ----------------- user helpers -----------------
 def get_user_by_username(db: Session, username: str):
     return db.query(DBUser).filter(DBUser.username == username).first()
-
 
 def authenticate_user(db: Session, username: str, password: str):
     user = get_user_by_username(db, username)
@@ -71,53 +58,35 @@ def authenticate_user(db: Session, username: str, password: str):
         return False
     return user
 
-
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-
-# ----------------- web pages -----------------
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-
-# ----------------- register endpoint -----------------
 @app.post("/register")
-def register(
-    username: str = Form(...),
-    password: str = Form(...),
-    parent_id: Optional[int] = Form(None),
-    db: Session = Depends(get_db)
-):
-    # Check uniqueness
-    if db.query(DBUser).filter(DBUser.username == username).first():
-        return {"error": "username already exists"}
-
-    # validate parent if provided
+def register(username: str = Form(...),password: str = Form(...),parent_id: Optional[int] = Form(...),db: Session = Depends(get_db)):
+    
+    if parent_id == 0 or parent_id is None:
+        parent_id = None
+        
     if parent_id is not None:
-        parent = db.query(DBUser).filter(DBUser.user_id == parent_id).first()
-        if not parent:
-            return {"error": "Parent ID does not exist"}
-
-    hashed = get_password_hash(password)
-    new_user = DBUser(username=username, hashed_password=hashed, parent_id=parent_id, disabled=False)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    # after registration go to login page
+        hashed = get_password_hash(password)
+        new_user = DBUser(username=username, hashed_password=hashed, parent_id=parent_id, disabled=False)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+   
     return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
-
-# ----------------- token endpoint (login using OAuth2 form) -----------------
 @app.post("/token", response_model=Token)
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -131,8 +100,6 @@ def login_for_access_token(
     access_token = create_access_token(data={"sub": user.username, "user_id": user.user_id})
     return {"access_token": access_token, "token_type": "bearer"}
 
-
-# ----------------- get current user from token -----------------
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     cred_exc = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                              detail="Could not validate credentials",
@@ -151,27 +118,30 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise cred_exc
     return user
 
-
 async def get_current_active_user(current_user: DBUser = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-
-# ----------------- score based on parent chain (same style you wanted) -----------------
 def calculate_score(userid: int, db: Session):
     level = 0
-    current = userid
-
-    while True:
-        user = db.query(DBUser).filter(DBUser.user_id == current).first()
-        # if no user found or parent is None -> reached root (no more parents)
-        if not user or user.parent_id is None:
+    flag=list()
+    current = db.query(DBUser).filter(DBUser.user_id == userid).first()
+     
+    while  current and current.parent_id is not None:
+        parent=db.query(DBUser).filter(DBUser.user_id == current.parent_id).first()
+        
+        if parent is None:
             break
-        level += 1
-        current = user.parent_id
-
-    # return score based on level
+        
+        if current.user_id in flag:
+            break
+        
+        flag.append(current.user_id)
+  
+        level+=1
+        current=parent
+    
     if level == 0:
         return 0
     elif level == 1:
@@ -182,18 +152,12 @@ def calculate_score(userid: int, db: Session):
         return 5
     else:
         return 2
-
-
-# ----------------- score page (requires token) -----------------
+    
 @app.get("/score", response_class=HTMLResponse)
-async def score_page(request: Request, current_user: DBUser = Depends(get_current_active_user),
-                     db: Session = Depends(get_db)):
+async def score_page(request: Request, current_user: DBUser = Depends(get_current_active_user),db: Session = Depends(get_db)):
     score_value = calculate_score(current_user.user_id, db)
-    return templates.TemplateResponse("score.html", {"request": request, "username": current_user.username,
-                                                     "userid": current_user.user_id, "score": score_value})
+    return templates.TemplateResponse("score.html", {"request": request, "username": current_user.username,"userid": current_user.user_id, "score": score_value})
 
-
-# ----------------- simple API endpoints to check auth (keeps original behavior) -----------------
 @app.get("/users/me")
 async def read_users_me(current_user: DBUser = Depends(get_current_active_user)):
     return {"user_id": current_user.user_id, "username": current_user.username, "disabled": current_user.disabled}
